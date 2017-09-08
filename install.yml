@@ -24,7 +24,8 @@
   pre_tasks:
     - include: tasks/repos.yml
       when: ansible_distribution == "RedHat"
-    - include: tasks/pip.yml
+  tasks:
+    - include: tasks/generators.yml
   roles:
     - { role: pip-repo }
     - { role: ansible-qpid-dispatch }

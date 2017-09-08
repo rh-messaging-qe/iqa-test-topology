@@ -31,8 +31,8 @@
 - name: Install routers on proper nodes.
   hosts: routers
   remote_user: root
-  pre_tasks:
-    - include: ../tasks/pip.yml
+  tasks:
+    - include: ../tasks/generators.yml
   vars:
       install_router_skip: false
   roles:
