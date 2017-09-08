@@ -1,0 +1,6 @@
+---
+- name: Add interconnect repo on rhel.
+  command: subscription-manager repos --enable=amq-interconnect-1-for-rhel-{{ ansible_distribution_major_version }}-server-rpms
+
+- name: Add client repo on rhel.
+  command: subscription-manager repos --enable=a-mq-clients-1-for-rhel-{{ ansible_distribution_major_version }}-server-beta-rpms

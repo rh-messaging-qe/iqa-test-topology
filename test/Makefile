@@ -11,5 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
----
-amq_broker_dependencies: wget, libaio, unzip
+
+# Make for instlal and config on Travis
+
+.PHONY: package_install clean
+
+# name of containers from inventory
+containers = thor loki hades zeus roland alain
+
+all: install clean
+
+install:
+	docker rm -f $(containers) || true
+	printf '[defaults]\nroles_path=../roles/\n' > ansible.cfg
+	ansible-playbook -i hosts test_main.yml
+
+clean:
+	docker rm -f $(containers) || true
