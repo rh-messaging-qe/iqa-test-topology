@@ -1,0 +1,60 @@
+# Copyright 2017 Red Hat, Inc. and/or its affiliates
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+---
+- name: Bring up docker containers
+  hosts: localhost
+  roles:
+    - role: provision_docker
+      provision_docker_inventory_group: "{{ groups['all'] }}"
+      provision_docker_privileged: true
+
+- name: Install clients on proper nodes.
+  hosts: clients
+  remote_user: root
+  vars:
+      install_clients_skip: false
+  roles:
+    - { role: cli-rhea, become: yes, when: install_clients_skip == false }
+
+- name: Install routers on proper nodes.
+  hosts: routers
+  remote_user: root
+  pre_tasks:
+    - include: ../tasks/pip.yml
+  vars:
+      install_router_skip: false
+  roles:
+    - { role: epel }
+    - { role: pip-repo }
+    - { role: ansible-qpid-dispatch, when: install_router_skip == false}
+
+- name: Instal brokers on proper nodes.
+  hosts: brokers
+  remote_user: root
+  vars:
+      amq_broker_download_dest: /tmp
+      amq_broker_install_dest: /home/{{ amq_broker_user }}
+      amq_broker_user: jamq
+      amq_broker_install_link: jboss-amq-7
+      amq_broker_jvm: java-1.8.0-openjdk-devel
+      amq_broker_jvm_install: true
+      amq_broker_instance_dir: jboss-amq-7-i0
+      amq_broker_instance_jmx_port: 1099
+      amq_broker_instance_queues:
+        - test.queue1
+        - test.queue2
+  roles:
+    - { role: ansible-basic-server, become: true }
+    - { role: amq-broker, become: true }
