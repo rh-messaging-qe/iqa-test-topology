@@ -2,18 +2,15 @@
 
 # VMs on MRG07 server
 [brokers]
-broker1-rhel6i1 ansible_host=r6i1
-broker2-rhel7x2 ansible_host=r7x2
+broker1
+broker2
 
 [clients]
-#client1-rhel6x1 ansible_host=r6x1
-#client2-rhel7x2 ansible_host=r7x2
-localhost ansible_connection=local
+client1
 
 [routers]
-router-rhel7x1 ansible_host=r7x1
-router-rhel7x2 ansible_host=r7x2
-#localhost ansible_connection=local
+router1
+router2
 
 [brokers&clients:children]
 brokers
