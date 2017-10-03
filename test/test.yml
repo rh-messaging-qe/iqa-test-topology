@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 ---
 - name: Bring up docker containers
   hosts: localhost
@@ -23,22 +22,20 @@
 - name: Install clients on proper nodes.
   hosts: clients
   remote_user: root
-  vars:
-      install_clients_skip: false
   roles:
-    - { role: cli-rhea, become: yes, when: install_clients_skip == false }
+    - { role: cli-rhea, become: yes }
 
 - name: Install routers on proper nodes.
   hosts: routers
   remote_user: root
-  tasks:
-    - include: ../tasks/generators.yml
   vars:
-      install_router_skip: false
+    dispatch_package_source_epel: true
+  pre_tasks:
+    - include: tasks/repos.yml
+      when: ansible_distribution == "RedHat"
   roles:
-    - { role: epel }
     - { role: pip-repo }
-    - { role: ansible-qpid-dispatch, when: install_router_skip == false}
+    - { role: ansible-qpid-dispatch }
 
 - name: Instal brokers on proper nodes.
   hosts: brokers
@@ -58,3 +55,8 @@
   roles:
     - { role: ansible-basic-server, become: true }
     - { role: amq-broker, become: true }
+
+- name: Install other dependencies
+  hosts: localhost
+  tasks:
+    - include: ../tasks/generator.yml

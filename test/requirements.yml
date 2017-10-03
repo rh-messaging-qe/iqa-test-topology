@@ -34,8 +34,8 @@
   name: cli-rhea
 
 # Epel
-- src: geerlingguy.repo-epel
-  name: epel
+- src: https://github.com/msgqe/ansible-epel.git
+  name: ansible-epel
 
 # pip
 - src: https://github.com/bobbyrenwick/ansible-pip.git

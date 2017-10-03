@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+---
 - name: Install clients on proper nodes.
   hosts: clients
   remote_user: root
@@ -21,11 +21,11 @@
 - name: Install routers on proper nodes.
   hosts: routers
   remote_user: root
+  vars:
+    dispatch_package_source_epel: true
   pre_tasks:
     - include: tasks/repos.yml
       when: ansible_distribution == "RedHat"
-  tasks:
-    - include: tasks/generators.yml
   roles:
     - { role: pip-repo }
     - { role: ansible-qpid-dispatch }
@@ -48,3 +48,8 @@
   roles:
     - { role: ansible-basic-server, become: true }
     - { role: amq-broker, become: true }
+
+- name: Install other dependencies
+  hosts: localhost
+  tasks:
+    - include: tasks/generator.yml
