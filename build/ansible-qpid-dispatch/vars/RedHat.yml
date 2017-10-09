@@ -1,0 +1,8 @@
+---
+__dispatch_packages:
+  - qpid-dispatch-router
+  - qpid-dispatch-tools
+  - qpid-dispatch-docs
+  - cyrus-sasl
+
+__qpid_dispatch_daemon: qdrouterd

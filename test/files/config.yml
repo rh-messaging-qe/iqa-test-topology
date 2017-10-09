@@ -1,0 +1,2 @@
+hostfile: inventory/inventory
+graph_type: line_graph

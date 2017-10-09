@@ -1,0 +1,12 @@
+---
+- name: Bring up docker containers
+  hosts: localhost
+  roles:
+    - role: provision_docker
+      provision_docker_inventory_group: "{{ groups['all'] }}"
+
+- name:
+  hosts: clients
+  remote_user: root
+  roles:
+    - role: ansible-rhea-client

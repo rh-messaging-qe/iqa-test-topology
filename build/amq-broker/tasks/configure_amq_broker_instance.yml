@@ -1,0 +1,33 @@
+# Copyright 2017 Red Hat, Inc. and/or its affiliates
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ---
+- name: Configure JBoss AMQ 7 Broker instance
+  when: amq_broker_instance_type is defined and amq_broker_instance_type != "default"
+  template:
+    src: templates/{{ amq_broker_instance_type }}/broker.xml.j2
+    dest: "{{ amq_broker_install_dest }}/{{ amq_broker_instance_dir }}/etc/broker.xml"
+    owner: "{{ amq_broker_user }}"
+    group: "{{ amq_broker_user }}"
+    mode: 0755
+  notify: "Restart JBoss AMQ 7 Broker default instance via service"
+
+- name: Configure JBoss AMQ 7 Broker cluster instance using jgroups
+  when: amq_broker_instance_type is defined and amq_broker_instance_type == "jgroups-cluster"
+  template:
+    src: templates/{{ amq_broker_instance_type }}/jgroups_default.xml
+    dest: "{{ amq_broker_install_dest }}/{{ amq_broker_instance_dir }}/etc/jgroups_default.xml"
+    owner: "{{ amq_broker_user }}"
+    group: "{{ amq_broker_user }}"
+    mode: 0755
+  notify: "Restart JBoss AMQ 7 Broker default instance via service"

@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  author: Dominik Lenoch <dlenoch@redhat.com>
+  description: Qpid Dispatch for RHEL/CentOS
+  company: RedHat
+  license: license (Apache 2)
+  platforms:
+    - name: EL
+      versions:
+      - 6
+      - 7
+dependencies:
+  - src: https://github.com/msgqe/ansible-epel.git
+    name: ansible-epel

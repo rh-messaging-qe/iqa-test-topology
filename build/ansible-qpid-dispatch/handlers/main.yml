@@ -1,0 +1,15 @@
+---
+- name: qdrouterd is started
+  service:
+    name: "{{ dispatch_daemon }}"
+    state: started
+
+- name: qdrouterd is restarted
+  service:
+    name: "{{ dispatch_daemon }}"
+    state: restarted
+
+- name: qdrouterd is enabled
+  service:
+    name: "{{ dispatch_daemon }}"
+    enabled: yes

@@ -1,0 +1,49 @@
+# Copyright 2017 Red Hat, Inc. and/or its affiliates
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+- name: Ensure that broker dependencies are installed (RPM-based)
+  when:
+    - ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' or ansible_distribution == 'Fedora'
+  package: name="{{ amq_broker_dependencies }}" state=present
+
+- debug:
+    msg: "Going to download & use broker from {{ amq_broker_download_url }}"
+
+- name: Download distribution once to local dir to spread among nodes
+  get_url:
+    url: "{{ amq_broker_download_url }}"
+    dest: "{{ amq_broker_download_dest }}/{{ amq_broker_download_url | basename}}"
+    force: no
+  register: dist_get
+
+- name: Create JBoss AMQ 7 Broker user
+  shell: id {{ amq_broker_user }} || (useradd -u {{ amq_broker_user_uid }} -m -U {{ amq_broker_user }}  )
+
+- name: Unzip downloaded distribution to {{ amq_broker_install_dest }}
+  unarchive:
+    src: "{{ amq_broker_download_dest }}/{{ amq_broker_download_url | basename }}"
+    dest: "{{ amq_broker_install_dest }}/"
+    remote_src: True
+  register: dist_unzipped
+  when: dist_get.changed
+
+- name: Create link to broker install dir {{ amq_broker_install_dest }}/{{ amq_broker_install_link }}
+  file:
+    src: "{{ amq_broker_install_dest }}/{{ amq_broker_download_url | basename | regex_replace('^(?P<brand>.+)-(?P<product>.+)-(?P<version>[0-9].[0-9].[0-9]).*', '\\g<brand>-\\g<product>-\\g<version>') }}"
+    dest: "{{ amq_broker_install_dest }}/{{ amq_broker_install_link }}"
+    state: link
+    mode: 0755
+    owner: "{{ amq_broker_user }}"
+    group: "{{ amq_broker_user }}"
+    force: true

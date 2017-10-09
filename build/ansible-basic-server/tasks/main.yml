@@ -1,0 +1,57 @@
+# Copyright 2017 Red Hat, Inc. and/or its affiliates
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+# tasks file for basic-server
+- name: Load role variables
+  when: basic_server_common_packages is not defined
+  include_vars:
+    file: '{{ item }}'
+  with_first_found:
+    - vars/{{ ansible_distribution }}.yml
+    - vars/{{ ansible_os_family }}.yml
+
+
+- name: Install common packages
+  when:
+    - ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS'
+  package: name="{{ basic_server_common_packages }}" state=present enablerepo=epel
+
+
+- name: Install common packages
+  when:
+    - ansible_distribution != 'RedHat'
+  package: name="{{ basic_server_common_packages }}" state=present
+
+- name: Root TTY override
+  template:
+    src: templates/root-tty-override.j2
+    dest: /etc/sudoers.d/root-tty-override
+    owner: root
+    group: root
+    mode: 0440
+
+- name: Localhost name check
+  shell: hostname
+  register: hostname_ret
+
+- name: Localhost name fix
+  when: hostname_ret.stdout == "localhost.localdomain"
+  hostname:
+    name: localhost
+
+- name: Create ansible default facts directory
+  file:
+    path: "{{ ansible_default_facts_dir }}"
+    mode: 0644
+    state: directory

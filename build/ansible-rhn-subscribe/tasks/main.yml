@@ -1,0 +1,37 @@
+# Copyright 2017 Red Hat, Inc. and/or its affiliates
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+- name: Load variables
+  when: rhn_repositories_enabled is not defined and ansible_distribution == 'RedHat'
+  include_vars:
+    file: vars/repositories_rhel_{{ ansible_distribution_major_version }}_{{ ansible_architecture }}.yml
+
+- debug:
+    msg: "Disable Red Hat repositories variable: {{ rhn_skip_rhn_repos_disable }}"
+
+- debug:
+    msg: "Enable Red Hat repositories variable: {{ rhn_skip_rhn_repos_enable }}"
+
+- name: Disable Red Hat repositories
+  when:
+    - (rhn_repositories_disabled is defined and ansible_distribution == 'RedHat')
+    - (rhn_skip_rhn_repos_disable is defined and rhn_skip_rhn_repos_disable == false)
+  shell: subscription-manager repos --disable {{ rhn_repositories_disabled | join(" --disable ") }}
+  ignore_errors: True
+
+- name: Enable Red Hat repositories
+  when:
+    - (rhn_repositories_enabled is defined and ansible_distribution == 'RedHat')
+    - (rhn_skip_rhn_repos_enable is defined and rhn_skip_rhn_repos_enable == false)
+  shell: subscription-manager repos --enable {{ rhn_repositories_enabled | join(" --enable ") }}

@@ -1,0 +1,11 @@
+# provision_docker
+- src: https://github.com/chrismeyersfsu/provision_docker.git
+  name: provision_docker
+
+# epel
+- src: https://github.com/msgqe/ansible-epel.git
+  name: ansible-epel
+
+# npm
+- src: https://github.com/geerlingguy/ansible-role-nodejs.git
+  name: nodejs

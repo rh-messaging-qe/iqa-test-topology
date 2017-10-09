@@ -12,6 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
+
+# Step 1: Install clients, dispatch, (broker) on proper nodes
+# Step 2: Install topology generator on local hosts
+# Step 3: Generate topology
+# Step 4: Generate dispatch configs and deploy them
+# Step 5: Send message from sender to receiver
+# Step 6: Check result
+
 - name: Bring up docker containers
   hosts: localhost
   roles:
@@ -19,24 +27,25 @@
       provision_docker_inventory_group: "{{ groups['all'] }}"
       provision_docker_privileged: true
 
+# Install clients
 - name: Install clients on proper nodes.
   hosts: clients
   remote_user: root
   roles:
-    - { role: cli-rhea, become: yes }
+    - role: cli-rhea
+      become: true
 
+# Install routers
 - name: Install routers on proper nodes.
   hosts: routers
-  remote_user: root
   vars:
     dispatch_package_source_epel: true
-  pre_tasks:
-    - include: tasks/repos.yml
-      when: ansible_distribution == "RedHat"
+    dispatch_package_pip: true
+    dispatch_template_generator: true
   roles:
-    - { role: pip-repo }
-    - { role: ansible-qpid-dispatch }
+    - role: ansible-qpid-dispatch
 
+# Install brokers - now optinal
 - name: Instal brokers on proper nodes.
   hosts: brokers
   remote_user: root
@@ -53,10 +62,34 @@
         - test.queue1
         - test.queue2
   roles:
-    - { role: ansible-basic-server, become: true }
-    - { role: amq-broker, become: true }
+    - role: ansible-basic-server
+      become: true
+    - role: amq-broker
+      become: true
 
-- name: Install other dependencies
+- name: Ensure messaging topology generator is installed
   hosts: localhost
   tasks:
-    - include: ../tasks/generator.yml
+    - pip:
+        name: msg-topgen
+        state: latest
+  roles:
+    - role: pip
+
+- name: Generate topology
+  host: localhost
+  command: msg-topgen -c files/config.yml
+
+# Generate config and deploy them onr outer machines
+- name: Install routers on proper nodes.
+  hosts: routers
+  vars:
+    dispatch_package_source_epel: true
+    dispatch_test: true
+    dispatch_generate_congfigs: true
+    router_vars: /tmp/routers_vars.yml
+  pre_tasks:
+    - include_vars:
+        file: "{{ router_vars }}"
+  roles:
+    - role: ansible-qpid-dispatch

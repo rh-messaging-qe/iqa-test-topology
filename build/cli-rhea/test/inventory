@@ -1,0 +1,5 @@
+localhost ansible_connection=local
+
+[clients]
+alain image="rhmessagingqe/sshd-service:centos7"
+roland image="rhmessagingqe/sshd-service:centos6"

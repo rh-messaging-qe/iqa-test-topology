@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  author: Jakub Stejskal <jstejska@redhat.com>
+  description: RHEA client
+  company: RedHat
+  license: license (Apache 2)
+  platforms:
+    - name: EL
+      versions:
+      - 6
+      - 7
+dependencies:
+  # epel repo
+  - src: https://github.com/msgqe/ansible-epel.git
+    name: ansible-epel
+
+  - src: https://github.com/geerlingguy/ansible-role-nodejs.git
+    name: nodejs

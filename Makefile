@@ -12,15 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Make for run instlal and config on localhost
-
 .PHONY: package_install clean
-TEST_INVENTORY?=test/inventory
+TEST_INVENTORY?=test/files/inventory/inventory
 ANSIBLE_OPTS?=
 
-containers = alain roland
+containers = router1 router2 router3 sender receiver
 
-all: test
+all: package_install package_configure
 
 clean:
 	rm -rf ansible.cfg ./build

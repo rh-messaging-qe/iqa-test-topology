@@ -1,0 +1,41 @@
+# Copyright 2017 Red Hat, Inc. and/or its affiliates
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+
+- name: Open JBoss AMQ 7 Broker ports
+  include: setup_iptables.yml
+  when: amq_broker_skip_iptables is defined and amq_broker_skip_iptables != true and ansible_system == "Linux"
+
+# Always perform this check, not via handler
+- name: Stop JBoss AMQ 7 Broker default instance
+  include: service_stop_amq_broker_instance.yml
+
+- name: Get JBoss AMQ 7 Broker
+  include: get_amq_broker_distribution.yml
+  when: amq_broker_skip_install is defined and amq_broker_skip_install == false
+
+- name: Create JBoss AMQ 7 Broker default instance
+  include: create_amq_broker_instance.yml
+  when: amq_broker_skip_create is defined and amq_broker_skip_create == false
+
+- name: Configure JBoss AMQ 7 Broker default instance
+  include: configure_amq_broker_instance.yml
+  when: amq_broker_skip_configure is defined and amq_broker_skip_configure == false
+
+- name: Close JBoss AMQ 7 Broker ports
+  include: teardown_iptables.yml
+  when: amq_broker_skip_iptables is defined and amq_broker_skip_iptables != true and amq_broker_perform_teardown is defined and amq_broker_perform_teardown == true
+
+# - name: Write deployment configuration to facts
+#  include: write_amq_facts.yml
