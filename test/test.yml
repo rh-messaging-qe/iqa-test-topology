@@ -69,16 +69,20 @@
 
 - name: Ensure messaging topology generator is installed
   hosts: localhost
+  remote_user: root
   tasks:
-    - pip:
+    - name: Install msg-topgen
+      pip:
         name: msg-topgen
         state: latest
   roles:
     - role: pip
+      become: true
 
 - name: Generate topology
-  host: localhost
-  command: msg-topgen -c files/config.yml
+  hosts: localhost
+  tasks:
+    - command: msg-topgen -c files/config.yml
 
 # Generate config and deploy them onr outer machines
 - name: Install routers on proper nodes.

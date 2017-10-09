@@ -39,4 +39,4 @@
 
 # pip
 - src: https://github.com/bobbyrenwick/ansible-pip.git
-  name: pip-repo
+  name: pip
