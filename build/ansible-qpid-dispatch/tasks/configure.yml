@@ -1,5 +1,0 @@
----
-- include: configure_conf_deploy.yml
-  when: conf_file_path is defined
-  notify:
-    - qdrouterd is restarted

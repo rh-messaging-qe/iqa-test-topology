@@ -26,6 +26,7 @@
     - role: provision_docker
       provision_docker_inventory_group: "{{ groups['all'] }}"
       provision_docker_privileged: true
+      provision_docker_network: host
 
 # Install clients
 - name: Install clients on proper nodes.
@@ -41,7 +42,7 @@
   vars:
     dispatch_package_source_epel: true
     dispatch_package_pip: true
-    dispatch_template_generator: true
+    dispatch_skip_template_generator: false
   roles:
     - role: ansible-qpid-dispatch
 
@@ -75,25 +76,59 @@
       pip:
         name: msg-topgen
         state: latest
+        extra_args: --user
   roles:
     - role: pip
       become: true
 
-- name: Generate topology
+- name: Generate variables
   hosts: localhost
   tasks:
-    - command: msg-topgen -c files/config.yml
+    - command: msg_topgen -c files/config.yml -o /tmp/generated/
 
-# Generate config and deploy them onr outer machines
-- name: Install routers on proper nodes.
+# Generate config and deploy them on router machines
+- name: Generate topology and deploy configs.
   hosts: routers
   vars:
     dispatch_package_source_epel: true
-    dispatch_test: true
-    dispatch_generate_congfigs: true
-    router_vars: /tmp/routers_vars.yml
+    dispatch_skip_install: true
+    dispatch_skip_template_generator: false
+    dispatch_skip_generate_template: false
+    dispatch_skip_generate_congfigs: false
+    # template_file_path_local: "~/Desktop/templates-test/qdrouterd-{{ inventory_hostname }}.conf.j2"
+    router_vars: /tmp/generated/line_graph_R3_B0/router_confs.json
   pre_tasks:
     - include_vars:
         file: "{{ router_vars }}"
   roles:
     - role: ansible-qpid-dispatch
+
+- name: Comunicate
+  hosts: clients
+  strategy: free
+  tasks:
+    # - debug: msg="{{ hostvars['router1']['ansible_host'] }}"
+    # - debug: msg="{{ hostvars['router2']['ansible_host'] }}"
+    - debug: msg="{{ hostvars['router1']['docker_ip'] }}"
+    - debug: msg="{{ hostvars['router2']['docker_ip'] }}"
+    # - debug: msg="{{ inventory_hostname }}"
+
+    - name: Help
+      command: cli-rhea-sender --help
+      when: inventory_hostname == "sender"
+
+    # - name: Start receiver
+    #   command: timeout 20s cli-rhea-receiver --broker "10.37.145.106:5672" --address "queue_test" --count 2 --log-msgs dict
+    #   when: inventory_hostname == "receiver"
+    #
+    # - name: Send messages
+    #   command: cli-rhea-sender --broker "10.37.145.54:5672" --address "queue_test" --count 2 --msg-content "text message" --log-msgs dict
+    #   when: inventory_hostname == "sender"
+
+    - name: Start receiver
+      command: timeout 20s cli-rhea-receiver --broker "{{ hostvars['router1']['docker_ip'] }}:5672" --address "queue_test" --count 2 --log-msgs dict
+      when: inventory_hostname == "receiver"
+
+    - name: Send messages
+      command: cli-rhea-sender --broker "{{ hostvars['router3']['docker_ip'] }}:5672" --address "queue_test" --count 2 --msg-content "text message" --log-msgs dict
+      when: inventory_hostname == "sender"

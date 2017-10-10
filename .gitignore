@@ -1,3 +1,5 @@
 ansible.cfg
 *.retry
 roles/*
+build/
+generated/

@@ -30,6 +30,6 @@ test-prepare: clean
 	printf '[defaults]\nroles_path=./build:../\n' > ansible.cfg
 
 test: test-prepare
-	ansible-playbook $(ANSIBLE_OPTS) -i $(TEST_INVENTORY) test/test.yml
+	ansible-playbook $(ANSIBLE_OPTS) -i $(TEST_INVENTORY) test/test.yml -v
 	rm -rf ansible.cfg ./build
 	docker rm -f $(containers) || true

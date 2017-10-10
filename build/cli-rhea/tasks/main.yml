@@ -1,6 +1,0 @@
----
-- name: Install client based on RHEA lib.
-  npm:
-    name: cli-rhea
-    state: latest
-    global: yes

@@ -1,11 +1,19 @@
+#localhost ansible_connection=local
+#image="rhmessagingqe/sshd-service:centos7"
+
 [clients]
 sender image="rhmessagingqe/sshd-service:centos7"
-receiver image="rhmessagingqe/sshd-service:centos6"
+receiver image="rhmessagingqe/sshd-service:centos7"
+#sender ansible_host=r7x2
+#receiver ansible_host=r7x2
+
 
 [routers]
 router1 image="rhmessagingqe/sshd-service:centos7"
-router2 image="rhmessagingqe/sshd-service:centos6"
-router3 image="rhmessagingqe/sshd-service:centos6"
+router2 image="rhmessagingqe/sshd-service:centos7"
+router3 image="rhmessagingqe/sshd-service:centos7"
+#router1 ansible_host=r7x1
+#router2 ansible_host=r6x1
 
 [brokers]
 
