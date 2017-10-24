@@ -14,6 +14,7 @@
 
 .PHONY: package_install clean
 TEST_INVENTORY?=test/files/inventory/inventory
+TEST_INVENTORY_LOCAL?=test/files/inventory/inventory-local
 ANSIBLE_OPTS?=
 
 containers = router1 router2 router3 sender receiver
@@ -21,7 +22,7 @@ containers = router1 router2 router3 sender receiver
 all: package_install package_configure
 
 clean:
-	rm -rf ansible.cfg ./build
+	# rm -rf ansible.cfg ./build
 	docker rm -f $(containers) || true
 
 test-prepare: clean
@@ -31,5 +32,10 @@ test-prepare: clean
 
 test: test-prepare
 	ansible-playbook $(ANSIBLE_OPTS) -i $(TEST_INVENTORY) test/test.yml -v
+	rm -rf ansible.cfg ./build
+	docker rm -f $(containers) || true
+
+test-local: test-prepare
+	ansible-playbook $(ANSIBLE_OPTS) -i $(TEST_INVENTORY_LOCAL) test/test-local.yml
 	rm -rf ansible.cfg ./build
 	docker rm -f $(containers) || true

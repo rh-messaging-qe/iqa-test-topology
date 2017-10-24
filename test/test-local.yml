@@ -1,0 +1,106 @@
+# Copyright 2017 Red Hat, Inc. and/or its affiliates
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+# Step 1: Install clients, dispatch, (broker) on proper nodes
+# Step 2: Install topology generator on local hosts
+# Step 3: Generate topology
+# Step 4: Generate dispatch configs and deploy them
+# Step 5: Send message from sender to receiver
+# Step 6: Check result
+
+# # Install clients
+# - name: Install clients on proper nodes.
+#   hosts: clients
+#   remote_user: root
+#   roles:
+#     - role: cli-rhea
+#       become: true
+#
+# # Install routers
+# - name: Install routers on proper nodes.
+#   hosts: routers
+#   vars:
+#     dispatch_package_source_epel: true
+#     dispatch_package_pip: true
+#     dispatch_skip_template_generator: false
+#   roles:
+#     - role: ansible-qpid-dispatch
+#
+# # Install brokers - now optinal
+# - name: Instal brokers on proper nodes.
+#   hosts: brokers
+#   remote_user: root
+#   vars:
+#       amq_broker_download_dest: /tmp
+#       amq_broker_install_dest: /home/{{ amq_broker_user }}
+#       amq_broker_user: jamq
+#       amq_broker_install_link: jboss-amq-7
+#       amq_broker_jvm: java-1.8.0-openjdk-devel
+#       amq_broker_jvm_install: true
+#       amq_broker_instance_dir: jboss-amq-7-i0
+#       amq_broker_instance_jmx_port: 1099
+#       amq_broker_instance_queues:
+#         - test.queue1
+#         - test.queue2
+#   roles:
+#     - role: ansible-basic-server
+#       become: true
+#     - role: amq-broker
+#       become: true
+#
+# - name: Ensure messaging topology generator is installed
+#   hosts: localhost
+#   remote_user: root
+#   tasks:
+#     - name: Install msg-topgen
+#       pip:
+#         name: msg-topgen
+#         state: latest
+#         extra_args: --user
+#   roles:
+#     - role: pip
+#       become: true
+
+- name: Generate variables
+  hosts: localhost
+  tasks:
+    - command: msg_topgen -c files/config.yml -o /tmp/generated/
+
+# Generate config and deploy them on router machines
+- name: Generate topology and deploy configs.
+  hosts: routers
+  vars:
+    dispatch_package_source_epel: true
+    dispatch_skip_install: true
+    dispatch_skip_template_generator: false
+    dispatch_skip_generate_template: false
+    dispatch_skip_generate_congfigs: false
+    router_vars: /tmp/generated/line_graph_R2_B0/router_confs.json
+  pre_tasks:
+    - include_vars:
+        file: "{{ router_vars }}"
+  roles:
+    - role: ansible-qpid-dispatch
+
+- name: Comunicate
+  hosts: clients
+  strategy: free
+  tasks:
+    - name: Start receiver
+      command: timeout 20s cli-rhea-receiver --broker "{{ hostvars['router1']['ansible_host'] }}:5672" --address "queue_test" --count 2 --log-msgs dict
+      when: inventory_hostname == "receiver"
+
+    - name: Send messages
+      command: cli-rhea-sender --broker "{{ hostvars['router2']['ansible_host'] }}:5672" --address "queue_test" --count 2 --msg-content "text message" --log-msgs dict
+      when: inventory_hostname == "sender"

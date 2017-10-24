@@ -3,3 +3,4 @@ ansible.cfg
 roles/*
 build/
 generated/
+inventory-local

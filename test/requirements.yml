@@ -40,3 +40,6 @@
 # pip
 - src: https://github.com/bobbyrenwick/ansible-pip.git
   name: pip
+
+- src: https://github.com/geerlingguy/ansible-role-firewall.git
+  name: iptables
