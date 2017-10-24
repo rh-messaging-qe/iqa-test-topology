@@ -19,13 +19,6 @@
 # Step 5: Send message from sender to receiver
 # Step 6: Check result
 
-- name: Bring up docker containers
-  hosts: localhost
-  roles:
-    - role: provision_docker
-      provision_docker_inventory_group: "{{ groups['all'] }}"
-      provision_docker_privileged: true
-
 # Install clients
 - name: Install clients on proper nodes.
   hosts: clients
@@ -100,25 +93,14 @@
   roles:
     - role: ansible-qpid-dispatch
 
-##########################################################
-########################NOT WORKING#######################
-##########################################################
-# Not working on more docker containers (2 or more routers)
-# Ping between all nodes in network WORKING
-# sender just can't send message to receiver via router network
-# Workaroud for pass travis build: communicate thru only one router
-
 - name: Comunicate
   hosts: clients
   strategy: free
-  vars:
-    - sender_router: router1
-    - receiver_router: router1
   tasks:
     - name: Start receiver
-      command: timeout 20s cli-rhea-receiver --broker "{{hostvars[receiver_router]['docker_ip']}}:5672" --address "queue_test" --count 2 --log-msgs dict
+      command: timeout 20s cli-rhea-receiver --broker "{{ hostvars['router1']['ansible_host'] }}:5672" --address "queue_test" --count 2 --log-msgs dict
       when: inventory_hostname == "receiver"
 
     - name: Send messages
-      command: cli-rhea-sender --broker "{{hostvars[sender_router]['docker_ip']}}:5672" --address "queue_test" --count 2 --msg-content "text message" --log-msgs dict
+      command: cli-rhea-sender --broker "{{ hostvars['router2']['ansible_host'] }}:5672" --address "queue_test" --count 2 --msg-content "text message" --log-msgs dict
       when: inventory_hostname == "sender"
