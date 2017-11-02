@@ -38,7 +38,7 @@
   name: ansible-epel
 
 # pip
-- src: https://github.com/bobbyrenwick/ansible-pip.git
+- src: https://github.com/rh-messaging-qe/ansible-pip.git
   name: pip
 
 - src: https://github.com/geerlingguy/ansible-role-firewall.git
