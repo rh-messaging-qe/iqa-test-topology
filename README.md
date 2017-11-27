@@ -5,9 +5,9 @@ Interconnect ansible play for create network topology with Router, Broker, Clien
 
 Build/Test Status
 ------------
-[![Build Status](https://travis-ci.org/rh-messaging-qe/iqa-topologies.svg?branch=master)](https://travis-ci.org/rh-messaging-qe/iqa-topologies)
-[![GitHub Issues](https://img.shields.io/github/issues/rh-messaging-qe/iqa-topologies.svg)](https://github.com/rh-messaging-qe/iqa-topologies/issues)
-[![GitHub Issues](https://img.shields.io/github/issues-pr/rh-messaging-qe/iqa-topologies.svg)](https://github.com/rh-messaging-qe/iqa-topologies/pulls)
+[![Build Status](https://travis-ci.org/rh-messaging-qe/iqa-test-topology.svg?branch=master)](https://travis-ci.org/rh-messaging-qe/iqa-test-topology)
+[![GitHub Issues](https://img.shields.io/github/issues/rh-messaging-qe/iqa-test-topology.svg)](https://github.com/rh-messaging-qe/iqa-test-topology/issues)
+[![GitHub Issues](https://img.shields.io/github/issues-pr/rh-messaging-qe/iqa-test-topology.svg)](https://github.com/rh-messaging-qe/iqa-test-topology/pulls)
 ![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
