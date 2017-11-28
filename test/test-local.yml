@@ -23,9 +23,11 @@
 - name: Install clients on proper nodes.
   hosts: clients
   remote_user: root
+  vars:
+    install_clients: false
   roles:
     - role: cli-rhea
-      become: true
+      when: install_clients == true
 
 # Install routers
 - name: Install routers on proper nodes.
@@ -34,8 +36,10 @@
     dispatch_package_source_epel: true
     dispatch_package_pip: true
     dispatch_skip_template_generator: false
+    install_router: false
   roles:
     - role: ansible-qpid-dispatch
+      when: install_router == true
 
 # Install brokers - now optinal
 - name: Instal brokers on proper nodes.
@@ -62,20 +66,27 @@
 - name: Ensure messaging topology generator is installed
   hosts: localhost
   remote_user: root
+  vars:
+      install_pip: false
+      install_generator: false
   tasks:
     - name: Install msg-topgen
       pip:
         name: msg-topgen
         state: latest
         extra_args: --user
+      when: install_generator == true
   roles:
     - role: pip
-      become: true
+      when: install_pip == true
 
 - name: Generate variables
   hosts: localhost
+  vars:
+      run_topgen: true
   tasks:
     - command: msg_topgen -c files/config.yml -o /tmp/generated/
+      when: run_topgen == true
 
 # Generate config and deploy them on router machines
 - name: Generate topology and deploy configs.
@@ -92,15 +103,27 @@
         file: "{{ router_vars }}"
   roles:
     - role: ansible-qpid-dispatch
+      notify:
+        - qdrouterd is restarted
 
 - name: Comunicate
   hosts: clients
   strategy: free
+  vars:
+    client: 'proton'
   tasks:
-    - name: Start receiver
-      command: timeout 20s cli-rhea-receiver --broker "{{ hostvars['router1']['ansible_host'] }}:5672" --address "queue_test" --count 2 --log-msgs dict
-      when: inventory_hostname == "receiver"
+    - name: Start receiver Rhea
+      command: timeout 10s cli-rhea-receiver --broker "{{ hostvars['router1']['ansible_host'] }}:5672" --address "queue_test" --count 2 --log-msgs dict
+      when: inventory_hostname == "receiver" and client == 'rhea'
 
-    - name: Send messages
-      command: cli-rhea-sender --broker "{{ hostvars['router2']['ansible_host'] }}:5672" --address "queue_test" --count 2 --msg-content "text message" --log-msgs dict
-      when: inventory_hostname == "sender"
+    - name: Send messages Rhea
+      command: timeout 5s cli-rhea-sender --broker "{{ hostvars['router2']['ansible_host'] }}:5672" --address "queue_test" --count 2 --msg-content "text message" --log-msgs dict
+      when: inventory_hostname == "sender" and client == 'rhea'
+
+    - name: Start receiver Proton
+      command: timeout 10s cli-proton-python-receiver --broker-url "{{ hostvars['router1']['ansible_host'] }}:5672/queue_test" --count 2 --log-msgs dict
+      when: inventory_hostname == "receiver" and client == 'proton'
+
+    - name: Send messages Proton
+      command: timeout 5s cli-proton-python-sender --broker-url "{{ hostvars['router2']['ansible_host'] }}:5672/queue_test" --count 2 --msg-content "text message" --log-msgs dict
+      when: inventory_hostname == "sender" and client == 'proton'

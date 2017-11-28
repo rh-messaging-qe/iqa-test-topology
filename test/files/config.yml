@@ -1,2 +1,2 @@
-hostfile: files/inventory/inventory
+hostfile: files/inventory/inventory-local
 graph_type: line_graph
